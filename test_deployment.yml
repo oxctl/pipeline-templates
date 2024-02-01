@@ -1,0 +1,39 @@
+# File: test_deployment.yml
+# This waits for the backend to be available and then performs the deployment tests.
+# The deployment tests are available in the 'deployment' folder in the root of the project.
+
+parameters:
+  - name: DEV_CANVAS_HOST
+    type: string
+  - name: DEV_BACKEND_URL
+    type: string
+  - name: DEV_COURSE_ID
+    type: string
+  - name: DEV_TOOL_ID
+    type: string
+
+steps:
+  - task: Npm@1
+    displayName: 'Run npm ci'
+    inputs:
+      command: 'ci'
+      workingDir: 'deployment'
+  - task: Npm@1
+    displayName: 'Run npm run install-browsers'
+    inputs:
+      command: 'custom'
+      workingDir: 'deployment'
+      customCommand: 'run install-browsers'
+  - task: Npm@1
+    displayName: 'Run npm test'
+    env:
+      CI: true
+      OAUTH_TOKEN: $(DEV_OAUTH_TOKEN)
+      CANVAS_HOST: ${{ parameters.DEV_CANVAS_HOST }}
+      BACKEND_URL: ${{ parameters.DEV_BACKEND_URL }}
+      COURSE_ID: ${{ parameters.DEV_COURSE_ID }}
+      TOOL_ID: ${{ parameters.DEV_TOOL_ID }}
+    inputs:
+      command: 'custom'
+      workingDir: 'deployment'
+      customCommand: 'test'

@@ -1,0 +1,28 @@
+# File: react-deploy-to-s3-action.yml
+# Sync a built React application to an AWS S3 repository.
+
+parameters:
+  - name: bucket
+    type: string
+  - name: env
+    type: string
+
+steps:
+  - task: AWSShellScript@1
+    inputs:
+      awsCredentials: ${{ parameters.env }}
+      regionName: eu-west-1
+      scriptType: 'inline'
+      inlineScript: aws s3 sync build s3://${{ parameters.bucket }}/  --metadata-directive REPLACE --cache-control max-age=86400 --exclude index.html --exclude 'static/*' --no-progress --delete $*
+  - task: AWSShellScript@1
+    inputs:
+      awsCredentials: ${{ parameters.env }}
+      regionName: eu-west-1
+      scriptType: 'inline'
+      inlineScript: aws s3 sync build/static s3://${{ parameters.bucket }}/static  --metadata-directive REPLACE --cache-control max-age=31536000 --no-progress $*
+  - task: AWSShellScript@1
+    inputs:
+      awsCredentials: ${{ parameters.env }}
+      regionName: eu-west-1
+      scriptType: 'inline'
+      inlineScript: aws s3 cp build/index.html s3://${{ parameters.bucket }}/  --metadata-directive REPLACE --cache-control max-age=5 --no-progress $*
